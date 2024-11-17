@@ -73,6 +73,7 @@ public interface Container extends Lifecycle {
 
     /**
      * The ContainerEvent event type sent when a child container is added by <code>addChild()</code>.
+     * 如果容器支持管道，则添加阀门时发送ContainerEvent事件类型。
      */
     String ADD_CHILD_EVENT = "addChild";
 
@@ -80,12 +81,14 @@ public interface Container extends Lifecycle {
     /**
      * The ContainerEvent event type sent when a valve is added by <code>addValve()</code>, if this Container supports
      * pipelines.
+     * 如果容器支持管道，则添加阀门时发送ContainerEvent事件类型。
      */
     String ADD_VALVE_EVENT = "addValve";
 
 
     /**
      * The ContainerEvent event type sent when a child container is removed by <code>removeChild()</code>.
+     * 移除子容器时发送的ContainerEvent事件类型
      */
     String REMOVE_CHILD_EVENT = "removeChild";
 
@@ -93,6 +96,7 @@ public interface Container extends Lifecycle {
     /**
      * The ContainerEvent event type sent when a valve is removed by <code>removeValve()</code>, if this Container
      * supports pipelines.
+     * 如果容器支持管道，当一个阀门被移除时，将发送ContainerEvent事件类型。
      */
     String REMOVE_VALVE_EVENT = "removeValve";
 

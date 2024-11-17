@@ -22,6 +22,10 @@ import java.util.EventObject;
  * General event for notifying listeners of significant changes on a Container.
  *
  * @author Craig R. McClanahan
+ * 将容器上的重大更改通知监听器的一般事件。
+ * EventObject: jdk自带的。将Spring框架中的ApplicationEvent也是继承了EventObject类
+ *              主要是定义了一个事件源，即事件发生源，事件类型，事件数据
+ *              tomcat中事件源就是对应组件容器，Spring事件发生源就是ioc容器
  */
 public final class ContainerEvent extends EventObject {
 

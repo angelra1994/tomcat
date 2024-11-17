@@ -23,13 +23,15 @@ package org.apache.catalina;
  * taken place.
  *
  * @author Craig R. McClanahan
+ * 接口定义了重要事件的监听器(包括由实现生命周期接口的组件生成的“组件启动”和“组件停止”)。
+ * 监听器将在相关状态改变发生后被触发。
  */
 public interface LifecycleListener {
 
 
     /**
      * Acknowledge the occurrence of the specified event.
-     *
+     * 处理生命周期事件，监听器方法的回调
      * @param event LifecycleEvent that has occurred
      */
     void lifecycleEvent(LifecycleEvent event);

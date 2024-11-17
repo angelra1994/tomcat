@@ -93,12 +93,14 @@ public class StandardService extends LifecycleMBeanBase implements Service {
 
     /**
      * Mapper.
+     * 映射器，url和主机之间的映射关系。基于请求中的url，tomcat会找到对应host下面的具体应用
      */
     protected final Mapper mapper = new Mapper();
 
 
     /**
      * Mapper listener.
+     * 组合强关联。MapperListener内部维护了一个service实例，最终MapperListener工作的结果会保存到mapper对象中
      */
     protected final MapperListener mapperListener = new MapperListener(this);
 

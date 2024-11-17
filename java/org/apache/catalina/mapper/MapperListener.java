@@ -43,6 +43,8 @@ import org.apache.tomcat.util.res.StringManager;
  *
  * @author Remy Maucherat
  * @author Costin Manolache
+ * 实现了ContainerListener和LifecycleListener接口，监听tomcat组件的变化
+ * 当有Host，Context及Wrapper变更时，调用Mapper相关方法，增加或者删除Host，Context，Wrapper等
  */
 public class MapperListener extends LifecycleMBeanBase implements ContainerListener, LifecycleListener {
 
@@ -90,7 +92,7 @@ public class MapperListener extends LifecycleMBeanBase implements ContainerListe
 
     @Override
     public void startInternal() throws LifecycleException {
-
+        /** 1. 设置 STARTING 状态，发布Lifecycle.START_EVENT事件 */
         setState(LifecycleState.STARTING);
 
         Engine engine = service.getContainer();
@@ -98,15 +100,26 @@ public class MapperListener extends LifecycleMBeanBase implements ContainerListe
             return;
         }
 
+        /** 2. 设置mapper的默认主机名称 */
         findDefaultHost();
-
+        /** 3. 递归容器组件，为每一个容器组件添加mapperListener监听器
+         *      递归为每一个容器对象添加mapperListener，
+         *      这样所有的container的listener都指向了mapperListener
+         *      好处就是只有一个mapper对象，可以把所有的映射全部保存下来（集中管理）
+         */
         addListeners(engine);
 
+        /** 4. 遍历engine子容器逐一注册host
+         *      拿到servlet引擎的子容器数组，那不就是hosts吗
+         */
         Container[] conHosts = engine.findChildren();
         for (Container conHost : conHosts) {
             Host host = (Host) conHost;
+            /**如果主机的状态不处于NEW，就往mapper中添加*/
             if (!LifecycleState.NEW.equals(host.getState())) {
-                // Registering the host will register the context and wrappers
+                /** Registering the host will register the context and wrappers
+                 *  注册应用和servlet的包装器，也是套娃调用
+                 */
                 registerHost(host);
             }
         }
@@ -377,6 +390,7 @@ public class MapperListener extends LifecycleMBeanBase implements ContainerListe
             }
         }
 
+        /** 往mapper对象中添加contextVersion对象 */
         mapper.addContextVersion(host.getName(), host, contextPath, context.getWebappVersion(), context, welcomeFiles,
                 resources, wrappers);
 
@@ -485,7 +499,7 @@ public class MapperListener extends LifecycleMBeanBase implements ContainerListe
 
     /**
      * Add this mapper to the container and all child containers
-     *
+     * 将mapperListener实例递归添加到每一个容器（包括容器的子容器）中
      * @param container the container (and any associated children) to which the mapper is to be added
      */
     private void addListeners(Container container) {

@@ -509,11 +509,15 @@ public class Catalina {
 
     }
 
-
+    /**
+     * 解析tomcat核心配置文件server.xml
+     * @param start true表示启动，false表示stop
+     */
     protected void parseServerXml(boolean start) {
         // Set configuration source
         ConfigFileLoader
                 .setSource(new CatalinaBaseConfigurationSource(Bootstrap.getCatalinaBaseFile(), getConfigFile()));
+        /* 拿到 ../conf/server.xml 文件对象 */
         File file = configFile();
 
         if (useGeneratedCode && !Digester.isGeneratedCodeLoaderSet()) {
@@ -652,10 +656,12 @@ public class Catalina {
 
     /**
      * Start a new server instance.
+     * 启动一个 catalina 服务实例，1个tomcat对应1个catalina server
      */
     public void load() {
 
         if (loaded) {
+            /** 避免重复解析init组件 */
             return;
         }
         loaded = true;
@@ -665,9 +671,14 @@ public class Catalina {
         initDirs();
 
         // Before digester - it may be needed
+        /**
+         * 设置naming系统变量，配置JNDI初始化上下文工厂类
+         * 后面注册MBean的时候会用到，因为JMX会配合JNDI框架，将JNDI注册到MBeanServer中
+         */
         initNaming();
 
         // Parse main server.xml
+        /* 解析核心配置文件 ../conf.server.xml */
         parseServerXml(true);
         Server s = getServer();
         if (s == null) {

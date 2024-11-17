@@ -22,14 +22,18 @@ package org.apache.catalina;
  * stop" events are normally LifecycleEvents, not ContainerEvents.
  *
  * @author Craig R. McClanahan
+ * 为容器生成的重要事件定义侦听器的接口。
+ * 注意，"容器启动" 和 "容器停止" 事件通常是LifecycleEvents，而不是ContainerEvents。
+ * 白话：容器的启动和停止触发的事件类型还是Lifecycle（亲的）的，而非Container（表的）的
  */
 public interface ContainerListener {
 
 
     /**
      * Acknowledge the occurrence of the specified event.
-     *
+     * 确认指定事件的发生。
      * @param event ContainerEvent that has occurred
+     * 触发容器事件（即子监听器拿到容器发生改变的事件后做出的反应或叫响应）
      */
     void containerEvent(ContainerEvent event);
 

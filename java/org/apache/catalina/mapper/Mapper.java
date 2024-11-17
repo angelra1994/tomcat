@@ -93,13 +93,18 @@ public final class Mapper {
 
     /**
      * Add a new host to the mapper.
-     *
+     * 向映射器添加一个新主机。
      * @param name    Virtual host name
      * @param aliases Alias names for the virtual host
      * @param host    Host object
      */
     public synchronized void addHost(String name, String[] aliases, Host host) {
+        /**
+         * 重新定义主机的name 如果name 以 *. 打头，则去掉 *
+         * 比如 *.apache.org --> .apache.org
+         */
         name = renameWildcardHost(name);
+        /** 构建主机映射，MappedHost的父类{@link MapElement} */
         MappedHost[] newHosts = new MappedHost[hosts.length + 1];
         MappedHost newHost = new MappedHost(name, host);
         if (insertMap(hosts, newHosts, newHost)) {
@@ -1242,6 +1247,7 @@ public final class Mapper {
 
         int i = 0;
         while (true) {
+            /** 有序数组的，二分查找 */
             i = (b + a) >>> 1;
             int result = name.compareTo(map[i].name);
             if (result > 0) {
@@ -1432,9 +1438,11 @@ public final class Mapper {
 
     /**
      * Insert into the right place in a sorted MapElement array, and prevent duplicates.
+     * 插入到已排序的MapElement数组中的正确位置，并防止重复。
      */
     private static <T> boolean insertMap(MapElement<T>[] oldMap, MapElement<T>[] newMap, MapElement<T> newElement) {
         int pos = find(oldMap, newElement.name);
+        /** 不为-1，说明在旧的映射中有内容，如果名称一样，说明存在，则不插入 */
         if ((pos != -1) && (newElement.name.equals(oldMap[pos].name))) {
             return false;
         }
@@ -1477,6 +1485,10 @@ public final class Mapper {
     // ------------------------------------------------- MapElement Inner Class
 
 
+    /**
+     * 映射元素（和HashMap没关系）name就是object的名称，object就是对象，比如StandardWrapper等
+     * @param <T>
+     */
     protected abstract static class MapElement<T> {
 
         public final String name;
@@ -1494,10 +1506,13 @@ public final class Mapper {
 
     protected static final class MappedHost extends MapElement<Host> {
 
+        /** 应用程序列表 */
         public volatile ContextList contextList;
 
         /**
          * Link to the "real" MappedHost, shared by all aliases.
+         * 因为一个Host，可能是真正的一个Host，也可能只是起了一个别名，而在Mapper中，两者都是MapperHost，
+         * 只是真正的MapperHost的realHost是自身，而alias的MapperHost的realHost是其对应的真实的MapperHost
          */
         private final MappedHost realHost;
 
@@ -1568,6 +1583,7 @@ public final class Mapper {
 
     protected static final class ContextList {
 
+        /** 应用映射 */
         public final MappedContext[] contexts;
         public final int nesting;
 
@@ -1606,6 +1622,7 @@ public final class Mapper {
 
 
     protected static final class MappedContext extends MapElement<Void> {
+        /** 一个 MappedContext中可能有多个ContextVersion，表示多版本的context */
         public volatile ContextVersion[] versions;
 
         public MappedContext(String name, ContextVersion firstVersion) {
@@ -1615,15 +1632,23 @@ public final class Mapper {
     }
 
     protected static final class ContextVersion extends MapElement<Context> {
+        /** context 的匹配路径 */
         public final String path;
+        /** 匹配路径的斜杠数量，主要是为了计算Context中的nesting */
         public final int slashCount;
         public final WebResourceRoot resources;
+        /** context的欢迎页，是否有匹配的默认首页文件 */
         public String[] welcomeResources;
+        /** 默认匹配（仅只有一个，如果多个就不是默认了），当所有都不满足的时候指定的URL:比如：/ */
         public MappedWrapper defaultWrapper = null;
+        /** 精准匹配（精准匹配，可能有多个，即一个context下有多组wrapper），完整的匹配到URL 比如 /servlet-demo/hello */
         public MappedWrapper[] exactWrappers = new MappedWrapper[0];
+        /** 路径（通配符）匹配，匹配前面大部分URL，后面任意:比如：/servlet-demo/ */
         public MappedWrapper[] wildcardWrappers = new MappedWrapper[0];
+        /** 扩展匹配，以扩展名的形式匹配URL，比如：*.jsp */
         public MappedWrapper[] extensionWrappers = new MappedWrapper[0];
         public int nesting = 0;
+        /** 这个context是否还可用，是否被暂停 */
         private volatile boolean paused;
 
         public ContextVersion(String version, String path, int slashCount, Context context, WebResourceRoot resources,

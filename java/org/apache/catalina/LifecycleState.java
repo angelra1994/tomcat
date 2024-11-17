@@ -19,6 +19,7 @@ package org.apache.catalina;
 /**
  * The list of valid states for components that implement {@link Lifecycle}. See {@link Lifecycle} for the state
  * transition diagram.
+ * 实现了Lifecycle接口的组件有效状态列表
  */
 public enum LifecycleState {
     NEW(false, null),

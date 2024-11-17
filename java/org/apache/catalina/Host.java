@@ -48,12 +48,14 @@ public interface Host extends Container {
 
     /**
      * The ContainerEvent event type sent when a new alias is added by <code>addAlias()</code>.
+     * 添加主机别名发送的ContainerEvent事件类型
      */
     String ADD_ALIAS_EVENT = "addAlias";
 
 
     /**
      * The ContainerEvent event type sent when an old alias is removed by <code>removeAlias()</code>.
+     * 移除主机别名发送的ContainerEvent事件类型
      */
     String REMOVE_ALIAS_EVENT = "removeAlias";
 

@@ -158,6 +158,9 @@
                resourceName="UserDatabase"/>
       </Realm>
 
+      <!--
+            位于 Engine 容器中用于接收请求并进行相应处理的虚拟主机。通过该容器可以运行 Servlet 或者 JSP 来处理请求。
+      -->
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true">
 

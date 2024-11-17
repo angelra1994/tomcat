@@ -37,17 +37,34 @@ public abstract class LifecycleBase implements Lifecycle {
 
     private static final Log log = LogFactory.getLog(LifecycleBase.class);
 
+    /** 利用Locale实现日志的国际化打印 */
     private static final StringManager sm = StringManager.getManager(LifecycleBase.class);
 
 
     /**
      * The list of registered LifecycleListeners for event notifications.
+     * 这个是写时复制列表，搞这个是因为
+     * tomcat有很多组件，每个组件都有可能有自己的listener，监听器在组件生命周期中会触发，
+     * 当然也有可能会添加新的监听器，这时候效率最高且安全的就是CopyOnWriteArrayList。
+     *
+     * 1.适用于数据量不大的场景，不适用于数据量大的场景。由于写操作的时候，需要拷贝数组，
+     *   会消耗内存，如果原数组的内容比较多的情况下，可能导致young gc或者full gc
+     * 2.适用于读多写少的场景，不适用于实时读的场景。
+     *
+     * CopyOnWriteArrayList能保证写操作的线程安全，也能保证数据的最终一致性，但是无法保证数据的实时一致性。
+     * CopyOnWriteArrayList在写操作中，使用了ReentrantLock锁以保证线程安全，并替换原array属性；但是读
+     * 的时候直接读取array，可能会发生在写操作替换array前后。这就会导致读到旧数据，引发不一致。
+     *
+     * 1、如果写操作未完成，那么直接读取原数组的数据；
+     * 2、如果写操作完成，但是引用还未指向新数组，那么也是读取原数组数据；
+     * 3、如果写操作完成，并且引用已经指向了新的数组，那么直接从新数组中读取数据。
      */
     private final List<LifecycleListener> lifecycleListeners = new CopyOnWriteArrayList<>();
 
 
     /**
      * The current state of the source component.
+     * 默认资源组件的状态为：NEW，因为最开始组件肯定是处于刚刚创建但是还没有init的状态
      */
     private volatile LifecycleState state = LifecycleState.NEW;
 
@@ -118,8 +135,21 @@ public abstract class LifecycleBase implements Lifecycle {
         }
 
         try {
+            /**
+             * 发布 Lifecycle.BEFORE_INIT_EVENT 事件，如果当前组件注册的有 lifecycleListeners 就触发回调，反之不处理
+             * 但是仅有Server组件的lifecycleListeners不为空
+             * @see LifecycleListener#lifecycleEvent(LifecycleEvent)
+             */
             setStateInternal(LifecycleState.INITIALIZING, null, false);
+            /** 模板方法具体的子类实现
+             * {@link org.apache.catalina.core.StandardServer#initInternal()}
+             * {@link org.apache.catalina.core.StandardService#initInternal()}
+             * {@link org.apache.catalina.core.StandardEngine#initInternal()}
+             * {@link org.apache.catalina.core.StandardHost#initInternal()}
+             * {@link org.apache.catalina.core.StandardWrapper#initInternal()}
+             */
             initInternal();
+            /** 发布 Lifecycle.AFTER_INIT_EVENT 事件，触发 lifecycleListeners 回调 */
             setStateInternal(LifecycleState.INITIALIZED, null, false);
         } catch (Throwable t) {
             handleSubClassException(t, "lifecycleBase.initFail", toString());
